@@ -22,7 +22,18 @@ class InventoryFactory extends Factory
     public function definition()
     {
         return [
-            "name" => "Fridge"
+            "name" => $this->getInventoryName()
         ];
+    }
+
+    private function getInventoryName(){
+        $names = collect([
+            'Fridge', 'Pantry', 'Freezer',
+            'Basement Freezer', 'Garage Fridge',
+            'Medicine Cabinet', 'Bookshelf', 'DVD Shelf',
+            'Minibar', 'Spice Cabinet'
+        ]);
+
+        return $names->random();
     }
 }

@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\Inventory;
+use App\Models\User;
 use Illuminate\Foundation\Testing\DatabaseMigrations;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
@@ -16,13 +17,16 @@ class InventoryTest extends TestCase
     public function an_inventory_can_be_created()
     {
         // Arrange
+        $user = User::factory()->create();
         $inventory_info = [
             "name" => "Pantry"
         ];
-        $this->assertEquals(0, Inventory::all()->count());
+        $this->assertEquals(0, $user->inventories->count());
 
         // Act
-        $this->post('/inventories', $inventory_info);
+        $this
+            ->actingAs($user)
+            ->post('/inventories', $inventory_info);
 
         // Assert
         $this->assertEquals(1, Inventory::all()->count());
@@ -46,15 +50,18 @@ class InventoryTest extends TestCase
     /** @test */
     public function an_inventory_can_be_updated()
     {
-        $this->withoutExceptionHandling();
-
         // Arrange
-        $inventory = Inventory::factory()->create();
-        $this->assertEquals('Fridge', $inventory->name);
+        $user = User::factory()
+            ->has(Inventory::factory(['name' => 'Pantry']))
+            ->create();
 
+        $inventory = $user->inventories->first();
+        $this->assertEquals('Pantry', $inventory->name);
 
         // Act
-        $this->patch('/inventories/' . $inventory->id, [
+        $this
+            ->actingAs($user)
+            ->patch('/inventories/' . $inventory->id, [
             'name' => 'Freezer'
         ]);
 
@@ -65,13 +72,65 @@ class InventoryTest extends TestCase
     /** @test */
     public function an_inventory_can_be_deleted()
     {
+        $this->withoutExceptionHandling();
+
         // Arrange
-        $inventory = Inventory::factory()->create();
+        $user = User::factory()
+            ->has(Inventory::factory())
+            ->create();
+        $this->assertEquals(1, $user->inventories->count());
+        $inventory = $user->inventories->first();
 
         // Act
-        $this->delete('/inventories/' . $inventory->id);
+        $response = $this
+            ->actingAs($user)
+            ->delete('/inventories/' . $inventory->id);
 
         // Assert
-        $this->assertEquals(0, Inventory::all()->count());
+        $response->assertOk();
+        $this->assertEquals(0, $user->inventories->fresh()->count());
+    }
+
+    /** @test */
+    public function an_inventory_belongs_to_a_user()
+    {
+        // Arrange
+        $this->withoutExceptionHandling();
+        $user = User::factory()->create();
+        $inventory_info = [
+            'name' => 'Pantry'
+        ];
+
+        // Act
+        $this
+            ->actingAs($user)
+            ->post('/inventories', $inventory_info);
+
+        // Assert
+        $this->assertEquals(1, $user->inventories->count());
+    }
+
+    /** @test */
+    public function a_user_cannot_delete_another_users_inventories()
+    {
+        // Arrange
+        $user = User::factory()
+            ->has(Inventory::factory(['name' => 'Pantry']))
+            ->create();
+
+        $inventory = $user->inventories->first();
+
+        $unauthorizedInventory = Inventory::factory(['name' => 'Freezer'])
+            ->for(User::factory())
+            ->create();
+
+        // Act
+        $response = $this
+            ->actingAs($user)
+            ->delete('/inventories/' . $unauthorizedInventory->id);
+
+        // Assert
+        $response->assertForbidden();
+        $this->assertEquals('Freezer', $unauthorizedInventory->fresh()->name);
     }
 }

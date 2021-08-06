@@ -9,10 +9,14 @@ class Inventory extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['name'];
+    protected $fillable = ['name', 'user_id'];
 
     public function items(){
         return $this->hasMany(Item::class);
+    }
+
+    public function user(){
+        return $this->belongsTo(User::class);
     }
 
     public function addItem(Item $item){

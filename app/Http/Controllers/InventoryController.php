@@ -3,17 +3,24 @@
 namespace App\Http\Controllers;
 
 use App\Models\Inventory;
+use Auth;
 use Illuminate\Http\Request;
-use Illuminate\Foundation\Http;
 
 class InventoryController extends Controller
 {
+    public function __construct(){
+        $this->middleware('auth');
+        $this->middleware('owns.inventory', [
+            'except' => ['store']
+        ]);
+    }
+
     public function store(Request $request){
         $this->validate($request, [
             'name' => 'string|required'
         ]);
 
-        $inventory = Inventory::create($request->all());
+        $inventory = Auth::user()->createInventory($request->get('name'));
 
         return response($inventory, 201);
     }
