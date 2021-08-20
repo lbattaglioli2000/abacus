@@ -27,6 +27,7 @@ Route::get('/', function () {
 Route::post('/inventories', [InventoryController::class, 'store']);
 Route::patch('/inventories/{inventory}', [InventoryController::class, 'update']);
 Route::delete('/inventories/{inventory}', [InventoryController::class, 'delete']);
+
 Route::post('/inventory/{inventory}/items', [ItemController::class, 'store']);
 
 Route::middleware(['auth:sanctum', 'verified'])->get('/dashboard', function () {

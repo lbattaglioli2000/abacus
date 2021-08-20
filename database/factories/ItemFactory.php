@@ -25,7 +25,6 @@ class ItemFactory extends Factory
         return [
             'name' => $this->faker->name,
             'quantity' => $this->faker->numberBetween(0,100),
-            'inventory_id' => Inventory::factory()->create()->id
         ];
     }
 }

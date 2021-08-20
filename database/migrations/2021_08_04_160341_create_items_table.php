@@ -16,7 +16,7 @@ class CreateItemsTable extends Migration
     {
         Schema::create('items', function (Blueprint $table) {
             $table->id();
-            $table->foreignIdFor(Inventory::class);
+            $table->foreignIdFor(Inventory::class)->nullable();
             $table->string('name');
             $table->integer('quantity');
             $table->timestamps();
