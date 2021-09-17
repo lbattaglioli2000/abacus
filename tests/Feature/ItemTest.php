@@ -8,6 +8,7 @@ use App\Models\User;
 use Illuminate\Foundation\Testing\DatabaseMigrations;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
+use Illuminate\Validation\Rules\In;
 use Tests\TestCase;
 
 class ItemTest extends TestCase
@@ -18,16 +19,14 @@ class ItemTest extends TestCase
     public function an_item_can_be_added_to_an_inventory()
     {
         // Arrange -- setup
-        $user = User::factory()
-            ->has(Inventory::factory())
+        $user = User::factory()->create();
+        $inventory = Inventory::factory()
+            ->for($user)
             ->create();
-        $inventory = $user->inventories->first();
         $item_info = [
             'name' => 'Eggs',
             'quantity' => 12
         ];
-
-        $this->assertEquals(1, $user->inventories->count());
         $this->assertEquals(0, $inventory->items->count());
 
         // Act
@@ -42,29 +41,27 @@ class ItemTest extends TestCase
     public function an_item_cannot_be_added_to_an_inventory_the_user_does_not_own()
     {
         // Arrange
-        $user = User::factory()
-            ->has(Inventory::factory()->has(Item::factory()))
+        $user = User::factory()->create();
+        $inventory = Inventory::factory()
+            ->for($user)
             ->create();
+        $items = Item::factory()
+            ->for($inventory)
+            ->count(3)
+            ->create();
+        $this->assertEquals(3, $inventory->items->count());
         $unauthorized_user = User::factory()->create();
-        $inventories = $user->inventories;
-        $items = $inventories->first()->items;
-
-        dd($inventories);
-
-        $this->assertEquals(1, $inventories->count());
-        $this->assertEquals(0, $unauthorized_user->inventories->count());
 
         // Act
         $response = $this
             ->actingAs($unauthorized_user)
             ->post('/inventory/' . $inventory->id . '/items', [
-                'name' => 'Pantry'
+                'name' => 'Eggs',
+                'quantity' => 12
             ]);
 
         // Assert
-        $response->assertUnauthorized();
-        $this->assertEquals(1, $user->inventories->count());
-        $this->assertEquals(0, $unauthorized_user->inventories->count());
+        $response->assertForbidden();
+        $this->assertEquals(3, $inventory->items->fresh()->count());
     }
-
 }

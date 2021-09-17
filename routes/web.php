@@ -21,9 +21,9 @@ Route::get('/', function () {
     return view('welcome');
 });
 
-// TODO: Route::get('/inventories/create', [InventoryController::class, 'create']);
-// TODO: Route::get('inventories/{inventory}', [InventoryController::class, 'show']);
-// TODO: Route::get('/inventories/{inventory}/edit', [InventoryController::class, 'edit']);
+// TODO: Inventory creation view-- Route::get('/inventories/create', [InventoryController::class, 'create']);
+// TODO: GET Inventory view-- Route::get('inventories/{inventory}', [InventoryController::class, 'show']);
+// TODO: Edit Inventory view-- Route::get('/inventories/{inventory}/edit', [InventoryController::class, 'edit']);
 Route::post('/inventories', [InventoryController::class, 'store']);
 Route::patch('/inventories/{inventory}', [InventoryController::class, 'update']);
 Route::delete('/inventories/{inventory}', [InventoryController::class, 'delete']);

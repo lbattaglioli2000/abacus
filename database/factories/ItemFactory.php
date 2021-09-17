@@ -22,9 +22,15 @@ class ItemFactory extends Factory
      */
     public function definition()
     {
+        $itemNames = collect([
+            "Eggs", "Milk", "Bread", "Orange Juice", "Cheese", "Burgers", "Tomato Soup", "Spaghetti",
+            "Peanut Butter", "Jelly", "Butter", "Yogurt", "Strawberries", "Blueberries", "Bananas", "Beer",
+            "Wine", "Pepsi", "Honey Nut Cherrios", "Raisin Bran"
+        ]);
+
         return [
-            'name' => $this->faker->name,
-            'quantity' => $this->faker->numberBetween(0,100),
+            'name' => $itemNames->random(),
+            'quantity' => $this->faker->numberBetween(0,50),
         ];
     }
 }

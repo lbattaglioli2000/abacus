@@ -3,10 +3,10 @@
 namespace Tests\Feature;
 
 use App\Models\Inventory;
+use App\Models\Item;
 use App\Models\User;
 use Illuminate\Foundation\Testing\DatabaseMigrations;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Foundation\Testing\WithFaker;
 use Tests\TestCase;
 
 class InventoryTest extends TestCase
@@ -48,7 +48,7 @@ class InventoryTest extends TestCase
     }
 
     /** @test */
-    public function an_inventory_can_be_updated()
+    public function an_inventory_name_can_be_updated()
     {
         // Arrange
         $user = User::factory()
@@ -92,6 +92,37 @@ class InventoryTest extends TestCase
     }
 
     /** @test */
+    public function all_items_are_deleted_when_the_inventory_is_deleted()
+    {
+        // Arrange:
+        $user = User::factory()
+            ->create();
+
+        $inventory = Inventory::factory()
+            ->for($user)
+            ->create();
+
+        $items = Item::factory()
+            ->count(3)
+            ->for($inventory)
+            ->create();
+
+        $this->assertEquals(3, $items->count());
+
+        // Act:
+        $this
+            ->actingAs($user)
+            ->delete('/inventories/' . $inventory->id);
+
+        // Assert
+        $items->each(function ($item){
+            $this->assertDeleted($item);
+        });
+        $this->assertEquals(0, Inventory::all()->count());
+        $this->assertEquals(0, Item::all()->count());
+    }
+
+    /** @test */
     public function an_inventory_belongs_to_a_user()
     {
         // Arrange
@@ -131,6 +162,5 @@ class InventoryTest extends TestCase
 
         // Assert
         $response->assertForbidden();
-        $this->assertEquals('Freezer', $unauthorizedInventory->fresh()->name);
     }
 }
