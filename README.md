@@ -1,5 +1,3 @@
-# Learning Laravel
-
 ## What you're building
 
 > **abacus** -- *noun*
